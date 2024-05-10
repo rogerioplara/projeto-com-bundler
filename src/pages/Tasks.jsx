@@ -1,6 +1,10 @@
-import { Table, Input } from 'antd';
+import { Table, Input, Button } from 'antd';
 import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
+import TaskCompleted from '../components/TaskCompleted';
+import InputText from '../components/InputText';
+import fakeAuth from '../utils/fake-auth';
+import { useNavigate } from 'react-router-dom';
 
 // se o objeto for fixo, fazer ele fora da task instancia apenas uma vez, economiza processamento
 // se for dinamico precisa ser inserido no return
@@ -22,12 +26,14 @@ const columns = [
     render: (value) => {
       // return value ? 'Sim' : 'Não';
       // return <Checkbox checked={value} />;
-      return value ? '✅' : '❌';
+      return <TaskCompleted completed={value} />;
     },
   },
 ];
 
 const Tasks = () => {
+  const navigate = useNavigate();
+
   // cria uma lista de tarefas
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -65,13 +71,36 @@ const Tasks = () => {
     setSearchValue(event.target.value);
   };
 
+  const validateSearch = (value) => {
+    if (!value) {
+      return 'Informe o termo de busca desejado.';
+    }
+
+    if (value.length > 20) {
+      return 'O termo de busca deve possuir menos de 20 caracteres.';
+    }
+
+    return undefined;
+  };
+
+  const handleLogout = () => {
+    fakeAuth.isAuthenticated = false;
+    navigate('/');
+  };
+
   const renderContent = () => {
     return (
       <>
-        <Input
+        <Button type="text" danger onClick={handleLogout}>
+          Sair
+        </Button>
+        <br />
+        <InputText
           placeholder="Buscar tarefa por título"
           onChange={handleChange}
           value={searchValue}
+          label="Buscar"
+          validate={validateSearch}
         />
         <Table
           dataSource={tasks}
